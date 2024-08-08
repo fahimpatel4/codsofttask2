@@ -1,0 +1,51 @@
+import pandas as pd
+import numpy as np
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+
+iris = datasets.load_iris()
+df = pd.DataFrame(data=np.c_[iris['data'], iris['target']],
+                  columns=iris['feature_names'] + ['target'])
+
+X = df.iloc[:, :-1].values
+y = df.iloc[:, -1].values
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+classifier = SVC(kernel='linear', random_state=42)
+classifier.fit(X_train, y_train)
+
+y_pred = classifier.predict(X_test)
+
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+
+labels = np.unique(y_test)
+actual_counts = [np.sum(y_test == label) for label in labels]
+predicted_counts = [np.sum(y_pred == label) for label in labels]
+
+x = np.arange(len(labels))
+width = 0.35
+
+fig, ax = plt.subplots()
+rects1 = ax.bar(x - width/2, actual_counts, width, label='Actual')
+rects2 = ax.bar(x + width/2, predicted_counts, width, label='Predicted')
+
+ax.set_xlabel('Classes')
+ax.set_ylabel('Counts')
+ax.set_title('Actual vs Predicted Counts by Class')
+ax.set_xticks(x)
+ax.set_xticklabels(labels)
+ax.legend()
+
+fig.tight_layout()
+
+plt.show()
